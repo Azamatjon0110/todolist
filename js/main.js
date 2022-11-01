@@ -5,94 +5,46 @@ const elBtn = document.querySelector(".form-submit");
 const elAllComplete = document.querySelector(".all-complete");
 const elComplete = document.querySelector(".complete");
 const elUncomplete = document.querySelector(".uncomplete");
+const elTemplate = document.querySelector(".temp-movie").content;
 
-const array = [];
+// const array = [];
+const elTemplateFragment = document.createDocumentFragment()
 
 const renderArr = function(arr, element){
   element.innerHTML = "";
-  let allComplete = 0;
-  let complete = 0;
-  let unComplete = 0;
+  elAllComplete.textContent = arr.length;
+  const completeArray = arr.filter(function(item){
+    return item.isComplete ;
+  })
+  elComplete.textContent = completeArray.length;
+  const uncompleteArray = arr.filter(function(item){
+    return item.isComplete == false;
+  })
+  elUncomplete.textContent = uncompleteArray.length
 
   arr.forEach(obj => {
-
-    const item = document.createElement("li");
-    item.classList.add("d-flex");
-    item.classList.add("justify-content-between");
-    item.classList.add("align-items-center");
-    item.classList.add("me-3");
-    item.classList.add("mb-3");
-    item.classList.add("py-4");
-    item.classList.add("px-2");
-    item.classList.add("rounded-3");
-    item.classList.add("bg-primary");
-    item.classList.add("bg-opacity-50");
-    item.dataset.id = obj.id;
-
-    const elCount = document.createElement("span");
-    elCount.classList.add("d-inline-block");
-    elCount.classList.add("me-1", "me-md-2");
-    elCount.textContent = obj.id ;
-
-
-
-    const desc = document.createElement("p");
-    desc.classList.add("mb-0");
-    desc.classList.add("desc");
-    desc.textContent = obj.elText;
-
-    const checkBox = document.createElement("input");
-    checkBox.classList.add("form-check-input");
-    checkBox.classList.add("mt-0");
-    checkBox.dataset.id = obj.id;
-    checkBox.classList.add("me-2", "me-md-2");
-    checkBox.setAttribute("type", "checkbox");
+    const templateItem = elTemplate.cloneNode(true);
+    templateItem.querySelector(".list-item").dataset.id = obj.id;
+    templateItem.querySelector(".count-number").dataset.id = obj.id;
+    templateItem.querySelector(".desc").textContent = obj.elText;
+    templateItem.querySelector(".form-check-input").dataset.id = obj.id;
 
     if (obj.isComplete){
-      checkBox.checked = true;
-      desc.style.textDecoration = "line-through";
-      complete++;
-    }else{
-      unComplete++;
+      templateItem.querySelector(".form-check-input").checked = true;
+      templateItem.querySelector(".desc").style.textDecoration = "line-through";
     }
 
-    const btnDelete = document.createElement("button");
-    btnDelete.classList.add("list-item");
-    btnDelete.classList.add("btn");
-    btnDelete.classList.add("btn-danger");
-    btnDelete.classList.add("me-2");
-    btnDelete.dataset.id = obj.id;
-    btnDelete.textContent = "Delate";
+    templateItem.querySelector(".delete-btn").dataset.id = obj.id;
+    templateItem.querySelector(".edit-btn").dataset.id = obj.id;
 
-    const addBtn = document.createElement("button");
-    addBtn.classList.add("add-btn");
-    addBtn.classList.add("add");
-    addBtn.classList.add("btn");
-    addBtn.classList.add("btn-success");
-    addBtn.dataset.id = obj.id;
-    addBtn.textContent = "Edite";
-
-
-    const btnBox = document.createElement("div");
-    btnBox.appendChild(btnDelete);
-    btnBox.appendChild(addBtn);
-
-    const elBox = document.createElement("div");
-    elBox.classList.add("d-flex", "align-items-center")
-    elBox.appendChild(elCount);
-    elBox.appendChild(checkBox);
-    elBox.appendChild(desc);
-
-    item.appendChild(elBox);
-    item.appendChild(btnBox);
-    element.appendChild(item);
-    allComplete++;
+    element.appendChild(templateItem);
   });
-  elAllComplete.textContent = allComplete;
-  elComplete.textContent = complete;
-  elUncomplete.textContent = unComplete;
+
 };
 
+const localArray = JSON.parse(window.localStorage.getItem("todosList"));
+const array = localArray || [];
+renderArr(array,elList);
 const formTypes = {
   Save: "save",
   Edit: "edit",
@@ -111,6 +63,7 @@ elForm.addEventListener("submit", function(evt){
       isComplete: false,
     })
     renderArr(array, elList);
+    window.localStorage.setItem("todosList", JSON.stringify(array));
     elForm.reset();
   };
 
@@ -124,27 +77,26 @@ elForm.addEventListener("submit", function(evt){
       return todo.id === obj.id;
     });
     array.splice(editingFoundIndex, 1, obj);
+    elBtn.textContent = "Check";
+    window.localStorage.setItem("todosList", JSON.stringify(array));
     renderArr(array, elList);
-    elForm.reset();
   }
-
   renderArr(array, elList);
-  elForm.reset();
-
 });
 
 elList.addEventListener("click", function(evt){
-  if (evt.target.matches(".list-item")){
+  if (evt.target.matches(".delete-btn")){
     const deleteBtn = Number(evt.target.dataset.id);
     const index = array.findIndex(function(todo) {
       return todo.id === deleteBtn;
     });
-    console.log(deleteBtn, index);
     array.splice(index, 1);
-    console.log(array);
-    renderArr(array, elList)
+    renderArr(array, elList);
+    window.localStorage.setItem("todosList", JSON.stringify(array));
+    editingID = index.id;
+    formType = formTypes.Save;
   };
-  if (evt.target.matches(".add-btn")){
+  if (evt.target.matches(".edit-btn")){
     const editeBtn = Number(evt.target.dataset.id);
     const index = array.find(function(todo) {
       return todo.id === editeBtn;
@@ -161,13 +113,9 @@ elList.addEventListener("click", function(evt){
     const indexCheckBox = array.find(function(todo) {
       return todo.id === checkBoxId;
     });
-    if(!indexCheckBox.isComplete){
-      indexCheckBox.isComplete = true;
-    }else{
-      indexCheckBox.isComplete = false;
-    }
+    indexCheckBox.isComplete = !indexCheckBox.isComplete;
+    window.localStorage.setItem("todosList", JSON.stringify(array));
     renderArr(array, elList);
 
   }
-
 })
