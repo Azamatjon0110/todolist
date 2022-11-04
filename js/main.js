@@ -6,8 +6,6 @@ const elAllComplete = document.querySelector(".all-complete");
 const elComplete = document.querySelector(".complete");
 const elUncomplete = document.querySelector(".uncomplete");
 const elTemplate = document.querySelector(".temp-movie").content;
-
-// const array = [];
 const elTemplateFragment = document.createDocumentFragment()
 
 const renderArr = function(arr, element){
@@ -116,6 +114,5 @@ elList.addEventListener("click", function(evt){
     indexCheckBox.isComplete = !indexCheckBox.isComplete;
     window.localStorage.setItem("todosList", JSON.stringify(array));
     renderArr(array, elList);
-
   }
 })
